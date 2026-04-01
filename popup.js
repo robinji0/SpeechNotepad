@@ -58,7 +58,7 @@ const locales = {
 let currentUiLang = localStorage.getItem('appUiLang') || 'en';
 let currentSpeechLang = localStorage.getItem('appSpeechLang') || 'zh-CN';
 
-let recognition;
+let recognition = null; // 不再设为全局唯一实例，初始为 null
 let isRecording = false;
 let mediaStream = null;
 
@@ -73,7 +73,7 @@ const clearBtn = document.getElementById('clearBtn');
 const historyList = document.getElementById('historyList');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 const sponsorBtn = document.getElementById('sponsorBtn');
-const shortcutLink = document.getElementById('shortcutLink'); // 获取快捷键跳转链接
+const shortcutLink = document.getElementById('shortcutLink');
 
 function applyUiLanguage() {
     const t = locales[currentUiLang];
@@ -108,80 +108,27 @@ speechLangSelect.value = currentSpeechLang;
 speechLangSelect.addEventListener('change', (e) => {
     currentSpeechLang = e.target.value;
     localStorage.setItem('appSpeechLang', currentSpeechLang);
+    // 如果录音中途切换了语言，先停掉，稍微延时确保释放后自动重启
     if (isRecording) {
         forceStopRecording();
-        startRecording();
+        setTimeout(() => {
+            startRecording();
+        }, 300);
     }
 });
 
 applyUiLanguage();
 
-// 绑定快捷键设置跳转事件
 shortcutLink.addEventListener('click', (e) => {
     e.preventDefault();
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
 });
 
+// 初始化检查
 if (!('webkitSpeechRecognition' in window)) {
     statusText.innerText = locales[currentUiLang].statusNoSupport;
     micBtn.disabled = true;
 } else {
-    recognition = new webkitSpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    recognition.onstart = function() {
-        isRecording = true;
-        micBtn.innerText = locales[currentUiLang].stopBtn;
-        micBtn.disabled = false;
-        micBtn.classList.add('recording');
-        statusText.innerText = locales[currentUiLang].statusListening;
-        textArea.focus();
-    };
-
-    recognition.onresult = function(event) {
-        let interimTranscript = '';
-        let finalTranscript = '';
-
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-                finalTranscript += event.results[i][0].transcript;
-            } else {
-                interimTranscript += event.results[i][0].transcript;
-            }
-        }
-
-        if (finalTranscript !== '') {
-            let cursorStart = textArea.selectionStart;
-            let cursorEnd = textArea.selectionEnd;
-
-            const textBefore = textArea.value.substring(0, cursorStart);
-            const textAfter = textArea.value.substring(cursorEnd, textArea.value.length);
-
-            textArea.value = textBefore + finalTranscript + textAfter;
-
-            let newCursorPos = cursorStart + finalTranscript.length;
-            textArea.selectionStart = textArea.selectionEnd = newCursorPos;
-            textArea.focus();
-        }
-
-        interimDiv.innerText = interimTranscript;
-    };
-
-    recognition.onerror = function(event) {
-        console.error("Speech error:", event.error);
-        if (event.error === 'not-allowed') {
-            statusText.innerText = locales[currentUiLang].statusMicDenied;
-        } else {
-            statusText.innerText = locales[currentUiLang].statusError + event.error;
-        }
-        forceStopRecording();
-    };
-
-    recognition.onend = function() {
-        forceStopRecording();
-    };
-
     micBtn.addEventListener('click', () => {
         if (isRecording) {
             forceStopRecording();
@@ -192,15 +139,86 @@ if (!('webkitSpeechRecognition' in window)) {
 }
 
 function startRecording() {
+    if (isRecording) return; // 防连击
+
     micBtn.disabled = true;
     micBtn.innerText = locales[currentUiLang].preparing;
     statusText.innerText = locales[currentUiLang].statusMicRequest;
 
-    recognition.lang = currentSpeechLang;
-
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(function(stream) {
             mediaStream = stream;
+
+            // --- 核心修复区：每次录音都实例化全新的引擎，规避状态冲突 ---
+            if (recognition) {
+                // 彻底销毁旧实例，并解绑事件防止出现“幽灵回调”
+                recognition.onend = null;
+                recognition.onerror = null;
+                try { recognition.abort(); } catch(e) {}
+            }
+
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = currentSpeechLang;
+
+            recognition.onstart = function() {
+                isRecording = true;
+                micBtn.innerText = locales[currentUiLang].stopBtn;
+                micBtn.disabled = false;
+                micBtn.classList.add('recording');
+                statusText.innerText = locales[currentUiLang].statusListening;
+                textArea.focus();
+            };
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                if (finalTranscript !== '') {
+                    let cursorStart = textArea.selectionStart;
+                    let cursorEnd = textArea.selectionEnd;
+
+                    const textBefore = textArea.value.substring(0, cursorStart);
+                    const textAfter = textArea.value.substring(cursorEnd, textArea.value.length);
+
+                    textArea.value = textBefore + finalTranscript + textAfter;
+
+                    let newCursorPos = cursorStart + finalTranscript.length;
+                    textArea.selectionStart = textArea.selectionEnd = newCursorPos;
+                    textArea.focus();
+                }
+
+                interimDiv.innerText = interimTranscript;
+            };
+
+            recognition.onerror = function(event) {
+                console.error("Speech error:", event.error);
+                if (event.error === 'not-allowed') {
+                    statusText.innerText = locales[currentUiLang].statusMicDenied;
+                } else if (event.error === 'aborted') {
+                    // 主动打断属于正常现象，静默忽略
+                } else {
+                    statusText.innerText = locales[currentUiLang].statusError + event.error;
+                }
+                forceStopRecording();
+            };
+
+            recognition.onend = function() {
+                // 引擎自然断开时，恢复界面状态
+                if (isRecording) {
+                    forceStopRecording();
+                }
+            };
+
             try {
                 recognition.start();
             } catch (e) {
@@ -231,9 +249,11 @@ function forceStopRecording() {
 
     interimDiv.innerText = "";
 
-    try {
-        recognition.stop();
-    } catch (e) {}
+    if (recognition) {
+        try {
+            recognition.stop(); // 温和地停止录音，让最后一段话能够正常上屏
+        } catch (e) {}
+    }
 
     if (mediaStream) {
         mediaStream.getTracks().forEach(track => track.stop());
