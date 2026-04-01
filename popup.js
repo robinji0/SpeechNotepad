@@ -6,9 +6,13 @@ let micBtn = document.getElementById('micBtn');
 let statusText = document.getElementById('status');
 let interimDiv = document.getElementById('interimText');
 
-// 新增按钮元素获取
 let copyBtn = document.getElementById('copyBtn');
 let clearBtn = document.getElementById('clearBtn');
+let historyList = document.getElementById('historyList');
+let clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+// 初始化并渲染历史记录
+renderHistory();
 
 // 初始化语音识别
 if (!('webkitSpeechRecognition' in window)) {
@@ -128,13 +132,17 @@ function forceStopRecording() {
     }
 }
 
-// ---------------- 新增功能逻辑 ----------------
+// ---------------- 操作栏与历史记录逻辑 ----------------
 
-// 复制全部内容
+// 复制全部内容并保存到历史
 copyBtn.addEventListener('click', () => {
-    if (!textArea.value) return; // 如果没有内容则不执行
+    const textToCopy = textArea.value.trim();
+    if (!textToCopy) return;
 
-    navigator.clipboard.writeText(textArea.value).then(() => {
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        // 保存到历史记录
+        saveToHistory(textToCopy);
+
         // 视觉反馈
         const originalText = copyBtn.innerText;
         copyBtn.innerText = "✓ 已复制";
@@ -144,7 +152,7 @@ copyBtn.addEventListener('click', () => {
 
         setTimeout(() => {
             copyBtn.innerText = originalText;
-            copyBtn.style = ""; // 恢复默认样式
+            copyBtn.style = "";
         }, 1500);
     }).catch(err => {
         console.error('复制失败:', err);
@@ -152,13 +160,67 @@ copyBtn.addEventListener('click', () => {
     });
 });
 
-// 清空内容
+// 直接清空内容（移除弹窗确认）
 clearBtn.addEventListener('click', () => {
-    if (textArea.value.trim() === '') return;
+    textArea.value = "";
+    textArea.focus();
+});
 
-    // 添加一个简单的确认，防止误触导致辛辛苦苦说了一堆的话丢失
-    if (confirm("确定要清空所有内容吗？")) {
-        textArea.value = "";
-        textArea.focus();
+// 保存到本地存储
+function saveToHistory(text) {
+    let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
+
+    // 移除已存在的相同文本，避免重复
+    history = history.filter(item => item !== text);
+
+    // 添加到最前面
+    history.unshift(text);
+
+    // 最多保留 10 条记录
+    if (history.length > 10) {
+        history.pop();
     }
+
+    localStorage.setItem('speechHistory', JSON.stringify(history));
+    renderHistory();
+}
+
+// 渲染历史列表
+function renderHistory() {
+    let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
+    historyList.innerHTML = '';
+
+    if (history.length === 0) {
+        let emptyLi = document.createElement('li');
+        emptyLi.style.color = '#9ca3af';
+        emptyLi.style.fontSize = '12px';
+        emptyLi.style.textAlign = 'center';
+        emptyLi.style.backgroundColor = 'transparent';
+        emptyLi.innerText = '暂无记录，复制文本后自动保存';
+        historyList.appendChild(emptyLi);
+        return;
+    }
+
+    history.forEach(text => {
+        let li = document.createElement('li');
+        li.className = 'history-item';
+        li.innerText = text;
+        li.title = "点击加载: " + text; // 鼠标悬停显示完整内容
+
+        // 点击历史记录将其加载到输入框
+        li.addEventListener('click', () => {
+            textArea.value = text;
+            textArea.focus();
+            // 将光标移到最后
+            textArea.selectionStart = textArea.selectionEnd = text.length;
+        });
+
+        historyList.appendChild(li);
+    });
+}
+
+// 清空历史记录
+clearHistoryBtn.addEventListener('click', () => {
+    localStorage.removeItem('speechHistory');
+    renderHistory();
 });
