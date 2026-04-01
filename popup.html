@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>精准语音输入</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>语音记事本</h2>
+        <button id="micBtn" class="btn">开始录音</button>
+    </div>
+    <div id="status" class="status">点击上方按钮开始说话...</div>
+
+    <textarea id="textArea" placeholder="你的文字会出现在这里。你可以随时暂停，手动修改，然后把光标放在任意位置继续录音..."></textarea>
+
+    <div id="interimText" class="interim-text"></div>
+
+    <div class="action-bar">
+        <button id="copyBtn" class="action-btn copy-btn">复制全部</button>
+        <button id="clearBtn" class="action-btn clear-btn">清空内容</button>
+    </div>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
