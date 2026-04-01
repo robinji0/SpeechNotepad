@@ -56,7 +56,7 @@ const locales = {
 };
 
 let currentUiLang = localStorage.getItem('appUiLang') || 'en';
-let currentSpeechLang = localStorage.getItem('appSpeechLang') || 'zh-CN';
+let currentSpeechLang = localStorage.getItem('appSpeechLang') || 'en-US';
 
 let recognition = null; // 不再设为全局唯一实例，初始为 null
 let isRecording = false;
