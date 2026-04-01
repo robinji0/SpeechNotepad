@@ -160,7 +160,6 @@ textarea:focus {
     overflow-y: auto;
 }
 
-/* 历史条目样式调整，改为 flex 布局以放置删除按钮 */
 .history-item {
     display: flex;
     justify-content: space-between;

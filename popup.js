@@ -11,10 +11,8 @@ let clearBtn = document.getElementById('clearBtn');
 let historyList = document.getElementById('historyList');
 let clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
-// 初始化并渲染历史记录
 renderHistory();
 
-// 初始化语音识别
 if (!('webkitSpeechRecognition' in window)) {
     statusText.innerText = "抱歉，你的浏览器不支持语音识别功能。";
     micBtn.disabled = true;
@@ -22,7 +20,9 @@ if (!('webkitSpeechRecognition' in window)) {
     recognition = new webkitSpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = 'zh-CN';
+
+    // 取消了 recognition.lang = 'zh-CN' 的硬编码
+    // 现在系统会自动根据浏览器的默认语言环境进行自适应识别
 
     recognition.onstart = function() {
         isRecording = true;
@@ -132,24 +132,15 @@ function forceStopRecording() {
     }
 }
 
-// ---------------- 操作栏与历史记录逻辑 ----------------
-
-// 复制全部内容：包含停止录音 + 清空内容逻辑
 copyBtn.addEventListener('click', () => {
     const textToCopy = textArea.value.trim();
     if (!textToCopy) return;
 
     navigator.clipboard.writeText(textToCopy).then(() => {
-        // 1. 保存到历史记录
         saveToHistory(textToCopy);
-
-        // 2. 停止录音
         forceStopRecording();
-
-        // 3. 清空输入框
         textArea.value = "";
 
-        // 视觉反馈
         const originalText = copyBtn.innerText;
         copyBtn.innerText = "✓ 已复制并清空";
         copyBtn.style.backgroundColor = "#dcfce7";
@@ -175,14 +166,13 @@ function saveToHistory(text) {
     let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
     history = history.filter(item => item !== text);
     history.unshift(text);
-    if (history.length > 20) { // 稍微放宽点历史上限
+    if (history.length > 20) {
         history.pop();
     }
     localStorage.setItem('speechHistory', JSON.stringify(history));
     renderHistory();
 }
 
-// 渲染历史列表，增加单条删除功能
 function renderHistory() {
     let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
     historyList.innerHTML = '';
@@ -202,28 +192,24 @@ function renderHistory() {
         let li = document.createElement('li');
         li.className = 'history-item';
 
-        // 文本部分
         let textSpan = document.createElement('span');
         textSpan.className = 'history-item-text';
         textSpan.innerText = text;
         textSpan.title = "点击加载: " + text;
 
-        // 删除按钮部分
         let delBtn = document.createElement('button');
         delBtn.className = 'delete-single-btn';
         delBtn.innerHTML = '&times;';
         delBtn.title = "删除此条";
 
-        // 点击文本加载
         li.addEventListener('click', () => {
             textArea.value = text;
             textArea.focus();
             textArea.selectionStart = textArea.selectionEnd = text.length;
         });
 
-        // 点击删除按钮单条移除
         delBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // 防止触发父级的加载逻辑
+            e.stopPropagation();
             deleteFromHistory(index);
         });
 
