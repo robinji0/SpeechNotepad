@@ -1,0 +1,29 @@
+<svg width="880" height="240" viewBox="0 0 880 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="30" y1="30" x2="210" y2="210" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7EA6F1"/>
+      <stop offset="0.52" stop-color="#8F87F5"/>
+      <stop offset="1" stop-color="#DE92C9"/>
+    </linearGradient>
+  </defs>
+  <rect x="20" y="20" width="200" height="200" rx="52" fill="url(#bg)"/>
+  <rect x="26" y="26" width="188" height="188" rx="46" stroke="white" stroke-opacity="0.18" stroke-width="3"/>
+  <g transform="translate(36 32)">
+    <path d="M62 0C84.0914 0 102 17.9086 102 40V80C102 102.091 84.0914 120 62 120C39.9086 120 22 102.091 22 80V40C22 17.9086 39.9086 0 62 0Z" fill="white"/>
+    <rect x="53" y="120" width="18" height="44" rx="9" fill="white"/>
+    <rect x="26" y="164" width="72" height="18" rx="9" fill="white"/>
+    <path d="M4 80C4 111.48 29.5198 137 61 137C92.4802 137 118 111.48 118 80" stroke="white" stroke-width="15" stroke-linecap="round"/>
+    <rect x="40" y="30" width="44" height="7" rx="3.5" fill="#1C2854" fill-opacity="0.14"/>
+    <rect x="40" y="50" width="44" height="7" rx="3.5" fill="#1C2854" fill-opacity="0.14"/>
+    <rect x="40" y="70" width="44" height="7" rx="3.5" fill="#1C2854" fill-opacity="0.14"/>
+  </g>
+  <g transform="translate(150 58)">
+    <rect x="14" y="22" width="16" height="92" rx="8" fill="#79E6FF"/>
+    <rect x="0" y="14" width="44" height="12" rx="6" fill="#79E6FF"/>
+    <rect x="0" y="110" width="44" height="12" rx="6" fill="#79E6FF"/>
+    <circle cx="40" cy="0" r="10" fill="white" fill-opacity="0.94"/>
+    <path d="M40 -6V6M34 0H46" stroke="#8C83F5" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <text x="270" y="96" fill="#132041" font-size="60" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif">Speech Notepad</text>
+  <text x="272" y="152" fill="#5D6B91" font-size="32" font-weight="600" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif">语音记事本 · 光标优先</text>
+</svg>

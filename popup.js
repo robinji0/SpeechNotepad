@@ -1,72 +1,92 @@
+
 const locales = {
     en: {
         title: "Voice Notepad",
-        sponsor: "Sponsor",
-        dictationLang: "🎙️ Dictation Lang:",
-        startBtn: "Start Recording",
-        stopBtn: "Stop Recording",
+        subtitle: "Cursor-first speech notes",
+        workflowBadge: "Pause, edit, then continue at any cursor position",
+        dictationLangShort: "Dictation",
+        startBtn: "Start",
+        stopBtn: "Stop",
         preparing: "Preparing...",
-        statusDefault: "Click the button above to start speaking...",
-        statusListening: "Listening... (Inserts at cursor)",
+        statusDefault: "Ready. Click start and speak.",
+        statusListening: "Listening... text will be inserted at the cursor.",
         statusMicRequest: "Requesting microphone access...",
-        statusRedirect: "<span style='color: #ef4444;'>Need authorization in a new tab. Redirecting...</span>",
+        statusRedirect: "Microphone permission needs a new tab. Redirecting...",
         statusNoSupport: "Sorry, your browser doesn't support speech recognition.",
         statusMicDenied: "Microphone access denied. Please check browser settings.",
-        statusError: "Error occurred: ",
-        placeholder: "Your text will appear here. You can pause, edit manually, and place the cursor anywhere to continue recording...",
-        copyBtn: "Copy All",
-        copiedMsg: "✓ Copied & Cleared",
-        clearBtn: "Clear Content",
-        recentTitle: "Recent Conversions",
-        clearHistoryBtn: "Clear All",
-        emptyHistory: "No records",
-        copyFail: "Failed to copy, please select manually.",
+        statusError: "Error: ",
+        placeholder: "Speak, pause, edit, and move the cursor anywhere to continue dictation...",
+        copyBtn: "Copy",
+        copiedMsg: "Copied",
+        clearBtn: "Clear",
+        recentTitle: "Recent",
+        historySub: "Tap an item to load it back into the editor",
+        clearHistoryBtn: "Clear all",
+        emptyHistory: "No records yet",
+        copyFail: "Copy failed. Please copy the text manually.",
         clickToLoad: "Click to load: ",
         deleteItem: "Delete this item",
-        shortcutHint: "⌨️ Shortcuts: Chrome (Alt+S) | ",
-        shortcutLink: "Set Global Shortcut"
+        historyToggle: "History",
+        cursorMode: "Insert at cursor",
+        livePreview: "Live preview",
+        shortcutLabel: "Shortcut",
+        sponsorShort: "Sponsor",
+        closeHistory: "Close",
+        uiLangEn: "EN",
+        uiLangZh: "中文"
     },
     zh: {
         title: "语音记事本",
-        sponsor: "赞助",
-        dictationLang: "🎙️ 录音识别语言:",
+        subtitle: "光标优先的语音记事本",
+        workflowBadge: "暂停修改后，可从任意光标位继续录音",
+        dictationLangShort: "识别语言",
         startBtn: "开始录音",
         stopBtn: "停止录音",
         preparing: "准备中...",
-        statusDefault: "点击上方按钮开始说话...",
-        statusListening: "正在聆听中... (光标放在哪，字就打在哪)",
+        statusDefault: "已准备就绪，点击开始录音。",
+        statusListening: "正在聆听中，文字会插入到当前光标处。",
         statusMicRequest: "正在请求麦克风权限...",
-        statusRedirect: "<span style='color: #ef4444;'>需在新标签页授权。正在为您跳转...</span>",
+        statusRedirect: "需要在新标签页授权麦克风，正在跳转...",
         statusNoSupport: "抱歉，你的浏览器不支持语音识别功能。",
         statusMicDenied: "麦克风权限被拒绝，请检查浏览器设置。",
-        statusError: "发生错误: ",
-        placeholder: "你的文字会出现在这里。你可以随时暂停，手动修改，然后把光标放在任意位置继续录音...",
-        copyBtn: "复制全部",
-        copiedMsg: "✓ 已复制并清空",
-        clearBtn: "清空内容",
+        statusError: "发生错误：",
+        placeholder: "先说一段，停下来修改，再把光标移到任意位置继续录音...",
+        copyBtn: "复制",
+        copiedMsg: "已复制",
+        clearBtn: "清空",
         recentTitle: "最近转换",
+        historySub: "点一下即可回到编辑区继续处理",
         clearHistoryBtn: "全部清空",
         emptyHistory: "暂无记录",
-        copyFail: "复制失败，请手动选取复制。",
-        clickToLoad: "点击加载: ",
+        copyFail: "复制失败，请手动复制。",
+        clickToLoad: "点击加载：",
         deleteItem: "删除此条",
-        shortcutHint: "⌨️ 快捷键: 浏览器内 (Alt+S) | ",
-        shortcutLink: "配置全局跨软件唤起"
+        historyToggle: "历史",
+        cursorMode: "光标处插入",
+        livePreview: "实时预览",
+        shortcutLabel: "快捷键",
+        sponsorShort: "赞助",
+        closeHistory: "关闭",
+        uiLangEn: "EN",
+        uiLangZh: "中文"
     }
 };
 
-let currentUiLang = localStorage.getItem('appUiLang') || 'en';
+let currentUiLang = localStorage.getItem('appUiLang') || 'zh';
 let currentSpeechLang = localStorage.getItem('appSpeechLang') || 'zh-CN';
 
-let recognition = null; // 不再设为全局唯一实例，初始为 null
+let recognition = null;
 let isRecording = false;
 let mediaStream = null;
+let currentStatusKey = 'statusDefault';
+let currentStatusVariant = 'default';
 
-const uiLangSelect = document.getElementById('uiLangSelect');
+const uiLangButtons = [...document.querySelectorAll('.ui-lang-btn')];
 const speechLangSelect = document.getElementById('speechLangSelect');
 const textArea = document.getElementById('textArea');
 const micBtn = document.getElementById('micBtn');
 const statusText = document.getElementById('status');
+const interimWrap = document.getElementById('interimWrap');
 const interimDiv = document.getElementById('interimText');
 const copyBtn = document.getElementById('copyBtn');
 const clearBtn = document.getElementById('clearBtn');
@@ -74,59 +94,148 @@ const historyList = document.getElementById('historyList');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 const sponsorBtn = document.getElementById('sponsorBtn');
 const shortcutLink = document.getElementById('shortcutLink');
+const historyToggleBtn = document.getElementById('historyToggleBtn');
+const historyCloseBtn = document.getElementById('historyCloseBtn');
+const historySheet = document.getElementById('historySheet');
+const historyCount = document.getElementById('historyCount');
+
+function openExternalUrl(url) {
+    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.create) {
+        chrome.tabs.create({ url });
+    } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
+    }
+}
+
+function setStatus(key, variant = 'default', extraText = '') {
+    const t = locales[currentUiLang];
+    currentStatusKey = key;
+    currentStatusVariant = variant;
+    const baseText = t[key] || '';
+    statusText.className = `status status-${variant}`;
+    statusText.textContent = extraText ? `${baseText}${extraText}` : baseText;
+}
+
+function updateMicButton() {
+    const t = locales[currentUiLang];
+    micBtn.textContent = isRecording ? t.stopBtn : t.startBtn;
+    micBtn.classList.toggle('recording', isRecording);
+}
+
+function updateUiLangSwitch() {
+    uiLangButtons.forEach(btn => {
+        const isActive = btn.dataset.lang === currentUiLang;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+    });
+}
+
+function updateHistoryCount() {
+    const history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
+    historyCount.textContent = String(history.length);
+}
+
+function showInterim(text = '') {
+    interimDiv.textContent = text;
+    interimWrap.hidden = !text;
+}
+
+function toggleHistorySheet(open) {
+    const shouldOpen = typeof open === 'boolean' ? open : historySheet.hidden;
+    historySheet.hidden = !shouldOpen;
+    historySheet.setAttribute('aria-hidden', String(!shouldOpen));
+    if (shouldOpen) {
+        renderHistory();
+    }
+}
 
 function applyUiLanguage() {
     const t = locales[currentUiLang];
 
+    document.documentElement.lang = currentUiLang === 'zh' ? 'zh-CN' : 'en';
+
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (t[key]) el.innerHTML = t[key];
+        if (t[key]) {
+            el.textContent = t[key];
+        }
     });
 
     textArea.placeholder = t.placeholder;
+    sponsorBtn.title = t.sponsorShort;
+    sponsorBtn.setAttribute('aria-label', t.sponsorShort);
+    updateMicButton();
+    updateUiLangSwitch();
+    updateHistoryCount();
 
-    if (isRecording) {
-        micBtn.innerText = t.stopBtn;
-        statusText.innerText = t.statusListening;
+    if (!('webkitSpeechRecognition' in window)) {
+        setStatus('statusNoSupport', 'error');
+        micBtn.disabled = true;
+    } else if (currentStatusKey === 'statusListening' && isRecording) {
+        setStatus('statusListening', 'listening');
+    } else if (currentStatusVariant === 'error' && currentStatusKey === 'statusError') {
+        // Preserve the exact error text already shown.
+    } else if (currentStatusKey === 'statusMicDenied') {
+        setStatus('statusMicDenied', 'error');
+    } else if (currentStatusKey === 'statusMicRequest') {
+        setStatus('statusMicRequest', 'warning');
+    } else if (currentStatusKey === 'statusRedirect') {
+        setStatus('statusRedirect', 'warning');
     } else {
-        micBtn.innerText = t.startBtn;
-        if (!statusText.innerText.includes('Error') && !statusText.innerText.includes('错误') && !statusText.innerText.includes('拒绝') && !statusText.innerText.includes('denied')) {
-            statusText.innerText = t.statusDefault;
-        }
+        setStatus('statusDefault', 'default');
     }
+
     renderHistory();
 }
 
-uiLangSelect.value = currentUiLang;
-uiLangSelect.addEventListener('change', (e) => {
-    currentUiLang = e.target.value;
-    localStorage.setItem('appUiLang', currentUiLang);
-    applyUiLanguage();
+speechLangSelect.value = currentSpeechLang;
+
+uiLangButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const nextLang = btn.dataset.lang;
+        if (!nextLang || nextLang === currentUiLang) return;
+        currentUiLang = nextLang;
+        localStorage.setItem('appUiLang', currentUiLang);
+        applyUiLanguage();
+    });
 });
 
-speechLangSelect.value = currentSpeechLang;
 speechLangSelect.addEventListener('change', (e) => {
     currentSpeechLang = e.target.value;
     localStorage.setItem('appSpeechLang', currentSpeechLang);
-    // 如果录音中途切换了语言，先停掉，稍微延时确保释放后自动重启
+
     if (isRecording) {
         forceStopRecording();
         setTimeout(() => {
             startRecording();
-        }, 300);
+        }, 320);
     }
 });
 
-applyUiLanguage();
-
 shortcutLink.addEventListener('click', (e) => {
     e.preventDefault();
-    chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+    openExternalUrl('chrome://extensions/shortcuts');
 });
 
-// 初始化检查
+sponsorBtn.addEventListener('click', () => {
+    openExternalUrl('https://www.paypal.com/paypalme/robin326753');
+});
+
+historyToggleBtn.addEventListener('click', () => {
+    toggleHistorySheet(true);
+});
+
+historyCloseBtn.addEventListener('click', () => {
+    toggleHistorySheet(false);
+});
+
+clearHistoryBtn.addEventListener('click', () => {
+    localStorage.removeItem('speechHistory');
+    renderHistory();
+    updateHistoryCount();
+});
+
 if (!('webkitSpeechRecognition' in window)) {
-    statusText.innerText = locales[currentUiLang].statusNoSupport;
     micBtn.disabled = true;
 } else {
     micBtn.addEventListener('click', () => {
@@ -139,22 +248,20 @@ if (!('webkitSpeechRecognition' in window)) {
 }
 
 function startRecording() {
-    if (isRecording) return; // 防连击
+    if (isRecording) return;
 
     micBtn.disabled = true;
-    micBtn.innerText = locales[currentUiLang].preparing;
-    statusText.innerText = locales[currentUiLang].statusMicRequest;
+    micBtn.textContent = locales[currentUiLang].preparing;
+    setStatus('statusMicRequest', 'warning');
 
     navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(function(stream) {
+        .then((stream) => {
             mediaStream = stream;
 
-            // --- 核心修复区：每次录音都实例化全新的引擎，规避状态冲突 ---
             if (recognition) {
-                // 彻底销毁旧实例，并解绑事件防止出现“幽灵回调”
                 recognition.onend = null;
                 recognition.onerror = null;
-                try { recognition.abort(); } catch(e) {}
+                try { recognition.abort(); } catch (e) {}
             }
 
             recognition = new webkitSpeechRecognition();
@@ -164,10 +271,9 @@ function startRecording() {
 
             recognition.onstart = function() {
                 isRecording = true;
-                micBtn.innerText = locales[currentUiLang].stopBtn;
                 micBtn.disabled = false;
-                micBtn.classList.add('recording');
-                statusText.innerText = locales[currentUiLang].statusListening;
+                updateMicButton();
+                setStatus('statusListening', 'listening');
                 textArea.focus();
             };
 
@@ -184,80 +290,81 @@ function startRecording() {
                 }
 
                 if (finalTranscript !== '') {
-                    let cursorStart = textArea.selectionStart;
-                    let cursorEnd = textArea.selectionEnd;
+                    const cursorStart = textArea.selectionStart;
+                    const cursorEnd = textArea.selectionEnd;
 
                     const textBefore = textArea.value.substring(0, cursorStart);
-                    const textAfter = textArea.value.substring(cursorEnd, textArea.value.length);
+                    const textAfter = textArea.value.substring(cursorEnd);
 
                     textArea.value = textBefore + finalTranscript + textAfter;
 
-                    let newCursorPos = cursorStart + finalTranscript.length;
+                    const newCursorPos = cursorStart + finalTranscript.length;
                     textArea.selectionStart = textArea.selectionEnd = newCursorPos;
                     textArea.focus();
                 }
 
-                interimDiv.innerText = interimTranscript;
+                showInterim(interimTranscript);
             };
 
             recognition.onerror = function(event) {
-                console.error("Speech error:", event.error);
+                console.error('Speech error:', event.error);
                 if (event.error === 'not-allowed') {
-                    statusText.innerText = locales[currentUiLang].statusMicDenied;
+                    setStatus('statusMicDenied', 'error');
                 } else if (event.error === 'aborted') {
-                    // 主动打断属于正常现象，静默忽略
+                    // Ignore user-initiated aborts.
                 } else {
-                    statusText.innerText = locales[currentUiLang].statusError + event.error;
+                    currentStatusKey = 'statusError';
+                    currentStatusVariant = 'error';
+                    statusText.className = 'status status-error';
+                    statusText.textContent = `${locales[currentUiLang].statusError}${event.error}`;
                 }
-                forceStopRecording();
+                forceStopRecording(false);
             };
 
             recognition.onend = function() {
-                // 引擎自然断开时，恢复界面状态
                 if (isRecording) {
-                    forceStopRecording();
+                    forceStopRecording(true);
                 }
             };
 
             try {
                 recognition.start();
             } catch (e) {
-                console.error("Start failed:", e);
-                forceStopRecording();
+                console.error('Start failed:', e);
+                forceStopRecording(true);
             }
         })
-        .catch(function(err) {
-            console.error("Mic access error:", err);
-            statusText.innerHTML = locales[currentUiLang].statusRedirect;
+        .catch((err) => {
+            console.error('Mic access error:', err);
+            setStatus('statusRedirect', 'warning');
             setTimeout(() => {
-                chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") });
-                forceStopRecording();
-            }, 1500);
+                if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+                    openExternalUrl(chrome.runtime.getURL('popup.html'));
+                }
+                forceStopRecording(true);
+            }, 1200);
         });
 }
 
-function forceStopRecording() {
+function forceStopRecording(resetToDefault = true) {
     isRecording = false;
     micBtn.disabled = false;
-    micBtn.innerText = locales[currentUiLang].startBtn;
-    micBtn.classList.remove('recording');
-
-    const t = locales[currentUiLang];
-    if (statusText.innerText === t.statusListening || statusText.innerText === t.preparing) {
-        statusText.innerText = t.statusDefault;
-    }
-
-    interimDiv.innerText = "";
+    updateMicButton();
+    showInterim('');
 
     if (recognition) {
         try {
-            recognition.stop(); // 温和地停止录音，让最后一段话能够正常上屏
+            recognition.stop();
         } catch (e) {}
     }
 
     if (mediaStream) {
         mediaStream.getTracks().forEach(track => track.stop());
         mediaStream = null;
+    }
+
+    if (resetToDefault) {
+        setStatus('statusDefault', 'default');
     }
 }
 
@@ -267,32 +374,27 @@ copyBtn.addEventListener('click', () => {
 
     navigator.clipboard.writeText(textToCopy).then(() => {
         saveToHistory(textToCopy);
-        forceStopRecording();
-        textArea.value = "";
+        forceStopRecording(true);
+        textArea.value = '';
 
-        const originalText = copyBtn.innerText;
-        copyBtn.innerText = locales[currentUiLang].copiedMsg;
-        copyBtn.style.backgroundColor = "#dcfce7";
-        copyBtn.style.color = "#166534";
-        copyBtn.style.borderColor = "#bbf7d0";
+        const originalText = locales[currentUiLang].copyBtn;
+        copyBtn.textContent = locales[currentUiLang].copiedMsg;
+        copyBtn.classList.add('success');
 
         setTimeout(() => {
-            copyBtn.innerText = originalText;
-            copyBtn.style = "";
-        }, 1500);
-    }).catch(err => {
+            copyBtn.textContent = originalText;
+            copyBtn.classList.remove('success');
+        }, 1400);
+    }).catch((err) => {
         console.error('Copy failed:', err);
         alert(locales[currentUiLang].copyFail);
     });
 });
 
 clearBtn.addEventListener('click', () => {
-    textArea.value = "";
+    textArea.value = '';
+    showInterim('');
     textArea.focus();
-});
-
-sponsorBtn.addEventListener('click', () => {
-    chrome.tabs.create({ url: 'https://www.paypal.com/paypalme/robin326753' });
 });
 
 function saveToHistory(text) {
@@ -303,47 +405,61 @@ function saveToHistory(text) {
         history.pop();
     }
     localStorage.setItem('speechHistory', JSON.stringify(history));
+    updateHistoryCount();
     renderHistory();
+}
+
+function loadHistoryItem(text) {
+    textArea.value = text;
+    textArea.focus();
+    textArea.selectionStart = textArea.selectionEnd = text.length;
+    toggleHistorySheet(false);
 }
 
 function renderHistory() {
     const t = locales[currentUiLang];
-    let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
+    const history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
     historyList.innerHTML = '';
+    updateHistoryCount();
 
     if (history.length === 0) {
-        let emptyLi = document.createElement('li');
-        emptyLi.style.color = '#9ca3af';
-        emptyLi.style.fontSize = '12px';
-        emptyLi.style.textAlign = 'center';
-        emptyLi.style.backgroundColor = 'transparent';
-        emptyLi.innerText = t.emptyHistory;
+        const emptyLi = document.createElement('li');
+        emptyLi.className = 'history-empty';
+        emptyLi.textContent = t.emptyHistory;
         historyList.appendChild(emptyLi);
         return;
     }
 
     history.forEach((text, index) => {
-        let li = document.createElement('li');
+        const li = document.createElement('li');
         li.className = 'history-item';
+        li.tabIndex = 0;
 
-        let textSpan = document.createElement('span');
+        const textSpan = document.createElement('span');
         textSpan.className = 'history-item-text';
-        textSpan.innerText = text;
+        textSpan.textContent = text;
         textSpan.title = t.clickToLoad + text;
 
-        let delBtn = document.createElement('button');
+        const delBtn = document.createElement('button');
         delBtn.className = 'delete-single-btn';
+        delBtn.type = 'button';
         delBtn.innerHTML = '&times;';
         delBtn.title = t.deleteItem;
+        delBtn.setAttribute('aria-label', t.deleteItem);
 
         li.addEventListener('click', () => {
-            textArea.value = text;
-            textArea.focus();
-            textArea.selectionStart = textArea.selectionEnd = text.length;
+            loadHistoryItem(text);
         });
 
-        delBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+        li.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                loadHistoryItem(text);
+            }
+        });
+
+        delBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
             deleteFromHistory(index);
         });
 
@@ -354,13 +470,12 @@ function renderHistory() {
 }
 
 function deleteFromHistory(index) {
-    let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
+    const history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
     history.splice(index, 1);
     localStorage.setItem('speechHistory', JSON.stringify(history));
     renderHistory();
 }
 
-clearHistoryBtn.addEventListener('click', () => {
-    localStorage.removeItem('speechHistory');
-    renderHistory();
-});
+applyUiLanguage();
+renderHistory();
+showInterim('');

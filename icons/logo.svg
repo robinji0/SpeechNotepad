@@ -1,0 +1,41 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="52" y1="58" x2="454" y2="450" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7EA6F1"/>
+      <stop offset="0.52" stop-color="#8F87F5"/>
+      <stop offset="1" stop-color="#DE92C9"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(132 110) rotate(49.8) scale(236 207)">
+      <stop stop-color="white" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="92" y="78" width="344" height="358" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#2E3A8C" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect x="28" y="28" width="456" height="456" rx="120" fill="url(#bg)"/>
+  <rect x="28" y="28" width="456" height="456" rx="120" fill="url(#shine)"/>
+  <rect x="38" y="38" width="436" height="436" rx="110" stroke="white" stroke-opacity="0.18" stroke-width="4"/>
+
+  <g filter="url(#shadow)">
+    <g transform="translate(92 88)">
+      <path d="M122 0C160.66 0 192 31.34 192 70V140C192 178.66 160.66 210 122 210C83.34 210 52 178.66 52 140V70C52 31.34 83.34 0 122 0Z" fill="white"/>
+      <rect x="106" y="208" width="32" height="74" rx="16" fill="white"/>
+      <rect x="58" y="282" width="128" height="34" rx="17" fill="white"/>
+      <path d="M22 140C22 195.228 66.772 240 122 240C177.228 240 222 195.228 222 140" stroke="white" stroke-width="26" stroke-linecap="round"/>
+      <rect x="84" y="54" width="76" height="12" rx="6" fill="#1C2854" fill-opacity="0.16"/>
+      <rect x="84" y="88" width="76" height="12" rx="6" fill="#1C2854" fill-opacity="0.16"/>
+      <rect x="84" y="122" width="76" height="12" rx="6" fill="#1C2854" fill-opacity="0.16"/>
+      <rect x="84" y="156" width="52" height="12" rx="6" fill="#1C2854" fill-opacity="0.12"/>
+    </g>
+
+    <g transform="translate(324 110)">
+      <rect x="24" y="42" width="28" height="182" rx="14" fill="#79E6FF"/>
+      <rect x="0" y="28" width="76" height="22" rx="11" fill="#79E6FF"/>
+      <rect x="0" y="216" width="76" height="22" rx="11" fill="#79E6FF"/>
+      <circle cx="70" cy="0" r="17" fill="white" fill-opacity="0.92"/>
+      <path d="M70 -10V10M60 0H80" stroke="#8C83F5" stroke-width="10" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>
