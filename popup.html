@@ -1,98 +1,67 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speech Notepad</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app-shell">
-    <header class="topbar">
-        <div class="brand">
-            <img src="icons/icon-128.png" class="brand-mark" alt="Speech Notepad logo">
-            <div class="brand-copy">
-                <h1 data-i18n="title">语音记事本</h1>
-                <p data-i18n="subtitle">光标优先的语音记事本</p>
-            </div>
+<div class="container">
+
+    <div class="header">
+        <div class="title-group">
+            <h2 data-i18n="title">Voice Notepad</h2>
+            <button id="sponsorBtn" class="sponsor-btn">☕ <span data-i18n="sponsor">Sponsor</span></button>
         </div>
-
-        <div class="topbar-actions">
-            <div class="lang-switch" aria-label="Change interface language">
-                <button type="button" class="ui-lang-btn" data-lang="en" data-i18n="uiLangEn">EN</button>
-                <button type="button" class="ui-lang-btn" data-lang="zh" data-i18n="uiLangZh">中文</button>
-            </div>
-            <button id="sponsorBtn" class="sponsor-btn" type="button" title="Sponsor">
-                <span class="sponsor-btn-icon" aria-hidden="true">♥</span>
-                <span class="sponsor-btn-label" data-i18n="sponsorShort">赞助</span>
-            </button>
+        <div class="ui-lang-group" title="Change Interface Language / 切换界面语言">
+            <span>🌐</span>
+            <select id="uiLangSelect" class="ui-lang-select">
+                <option value="en">EN</option>
+                <option value="zh">中</option>
+            </select>
         </div>
-    </header>
+    </div>
 
-    <section class="panel controls-panel">
-        <div class="panel-head">
-            <span class="workflow-chip" data-i18n="workflowBadge">暂停修改后，可从任意光标位继续录音</span>
-            <button type="button" class="history-launch-btn" id="historyToggleBtn">
-                <span data-i18n="historyToggle">历史</span>
-                <span id="historyCount" class="count-badge">0</span>
-            </button>
+    <div class="control-bar">
+        <div class="speech-lang-group">
+            <span class="label-text" data-i18n="dictationLang">🎙️ Dictation Lang:</span>
+            <select id="speechLangSelect" class="speech-lang-select" title="Choose the language you are going to speak">
+                <option value="zh-CN">🇨🇳 中文 (Chinese)</option>
+                <option value="en-US">🇺🇸 English (US)</option>
+                <option value="ja-JP">🇯🇵 日本語 (Japanese)</option>
+                <option value="ko-KR">🇰🇷 한국어 (Korean)</option>
+                <option value="fr-FR">🇫🇷 Français (French)</option>
+                <option value="de-DE">🇩🇪 Deutsch (German)</option>
+                <option value="es-ES">🇪🇸 Español (Spanish)</option>
+            </select>
         </div>
+        <button id="micBtn" class="btn" data-i18n="startBtn">Start Recording</button>
+    </div>
 
-        <div class="control-grid">
-            <label class="field">
-                <span class="field-label" data-i18n="dictationLangShort">识别语言</span>
-                <select id="speechLangSelect" class="speech-lang-select" title="Choose the language you are going to speak">
-                    <option value="zh-CN">🇨🇳 中文 (Chinese)</option>
-                    <option value="en-US">🇺🇸 English (US)</option>
-                    <option value="ja-JP">🇯🇵 日本語 (Japanese)</option>
-                    <option value="ko-KR">🇰🇷 한국어 (Korean)</option>
-                    <option value="fr-FR">🇫🇷 Français (French)</option>
-                    <option value="de-DE">🇩🇪 Deutsch (German)</option>
-                    <option value="es-ES">🇪🇸 Español (Spanish)</option>
-                </select>
-            </label>
+    <div id="status" class="status" data-i18n="statusDefault">Click the button above to start speaking...</div>
 
-            <button id="micBtn" class="mic-btn" type="button" data-i18n="startBtn">开始录音</button>
+    <textarea id="textArea"></textarea>
+
+    <div id="interimText" class="interim-text"></div>
+
+    <div class="action-bar">
+        <button id="copyBtn" class="action-btn copy-btn" data-i18n="copyBtn">Copy All</button>
+        <button id="clearBtn" class="action-btn clear-btn" data-i18n="clearBtn">Clear Content</button>
+    </div>
+
+    <div class="history-section">
+        <div class="history-header">
+            <h3 data-i18n="recentTitle">Recent Conversions</h3>
+            <button id="clearHistoryBtn" class="text-btn" data-i18n="clearHistoryBtn">Clear All</button>
         </div>
-
-        <div id="status" class="status status-default" data-i18n="statusDefault">
-            已准备就绪，点击开始录音。
-        </div>
-    </section>
-
-    <section class="panel editor-panel">
-        <div class="editor-topbar">
-            <span class="mode-pill" data-i18n="cursorMode">光标处插入</span>
-            <a href="#" id="shortcutLink" class="shortcut-link" data-i18n="shortcutLabel">快捷键</a>
-        </div>
-
-        <textarea id="textArea"></textarea>
-
-        <div id="interimWrap" class="interim-wrap" hidden>
-            <div class="interim-label" data-i18n="livePreview">实时预览</div>
-            <div id="interimText" class="interim-text"></div>
-        </div>
-
-        <div class="action-bar">
-            <button id="copyBtn" class="action-btn primary-outline" type="button" data-i18n="copyBtn">复制</button>
-            <button id="clearBtn" class="action-btn subtle-outline" type="button" data-i18n="clearBtn">清空</button>
-        </div>
-    </section>
-
-    <aside id="historySheet" class="history-sheet" hidden aria-hidden="true">
-        <div class="history-sheet-header">
-            <div class="history-sheet-copy">
-                <h2 data-i18n="recentTitle">最近转换</h2>
-                <p data-i18n="historySub">点一下即可回到编辑区继续处理</p>
-            </div>
-            <div class="history-sheet-actions">
-                <button id="clearHistoryBtn" class="text-btn" type="button" data-i18n="clearHistoryBtn">全部清空</button>
-                <button id="historyCloseBtn" class="icon-btn close-btn" type="button" data-i18n="closeHistory" title="Close">✕</button>
-            </div>
-        </div>
-
         <ul id="historyList" class="history-list"></ul>
-    </aside>
+    </div>
+
+    <div class="footer-info">
+        <span data-i18n="shortcutHint">⌨️ Shortcuts: Chrome (Alt+S) | </span>
+        <a href="#" id="shortcutLink" data-i18n="shortcutLink">Set Global Shortcut</a>
+    </div>
+
 </div>
 
 <script src="popup.js"></script>

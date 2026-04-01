@@ -1,22 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Speech Notepad (Insert at Cursor)",
-  "version": "1.1",
+  "version": "1.0",
   "description": "A smart speech-to-text extension that inserts text exactly at your cursor position without overwriting.",
-  "icons": {
-    "16": "icons/icon-16.png",
-    "32": "icons/icon-32.png",
-    "48": "icons/icon-48.png",
-    "128": "icons/icon-128.png"
-  },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Open Speech Notepad",
-    "default_icon": {
-      "16": "icons/icon-16.png",
-      "32": "icons/icon-32.png",
-      "48": "icons/icon-48.png"
-    }
+    "default_title": "Open Speech Notepad"
   },
   "permissions": [
     "storage"
