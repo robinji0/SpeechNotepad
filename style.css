@@ -1,5 +1,5 @@
 body {
-    width: 450px;
+    width: 520px; /* 稍微加宽一点以容纳顶部的新选择器 */
     margin: 0;
     padding: 15px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -24,13 +24,38 @@ body {
     gap: 8px;
 }
 
+.action-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 h2 {
     margin: 0;
     font-size: 18px;
     color: #333;
+    white-space: nowrap;
 }
 
-/* 赞助按钮样式 */
+.lang-select, .speech-lang-select {
+    font-size: 12px;
+    padding: 4px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #4b5563;
+    outline: none;
+    cursor: pointer;
+}
+
+.speech-lang-select {
+    font-size: 13px;
+}
+
+.lang-select:focus, .speech-lang-select:focus {
+    border-color: #3b82f6;
+}
+
 .sponsor-btn {
     background-color: transparent;
     border: 1px solid #fecdd3;
@@ -43,6 +68,8 @@ h2 {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 2px;
+    white-space: nowrap;
 }
 
 .sponsor-btn:hover {
@@ -60,6 +87,7 @@ h2 {
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.2s;
+    white-space: nowrap;
 }
 
 .btn:hover {

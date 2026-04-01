@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "精准语音输入 (Insert at Cursor)",
+  "name": "Speech Notepad (Insert at Cursor)",
   "version": "1.0",
-  "description": "支持断点接续的语音转文字插件，光标在哪里，文字就插入在哪里，绝不覆盖之前的文本。",
+  "description": "A smart speech-to-text extension that inserts text exactly at your cursor position without overwriting.",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "打开语音记事本"
+    "default_title": "Open Speech Notepad"
   },
   "permissions": []
 }

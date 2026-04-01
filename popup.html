@@ -2,33 +2,48 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>精准语音输入</title>
+    <title>Speech Notepad</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
     <div class="header">
         <div class="title-group">
-            <h2>语音记事本</h2>
-            <button id="sponsorBtn" class="sponsor-btn" title="支持开发者">☕ 赞助</button>
+            <h2 data-i18n="title">Voice Notepad</h2>
+            <select id="uiLangSelect" class="lang-select" title="UI Language">
+                <option value="en">EN</option>
+                <option value="zh">中</option>
+            </select>
+            <button id="sponsorBtn" class="sponsor-btn">☕ <span data-i18n="sponsor">Sponsor</span></button>
         </div>
-        <button id="micBtn" class="btn">开始录音</button>
+        <div class="action-group">
+            <select id="speechLangSelect" class="speech-lang-select" title="Spoken Language">
+                <option value="zh-CN">🇨🇳 中文</option>
+                <option value="en-US">🇺🇸 English</option>
+                <option value="ja-JP">🇯🇵 日本語</option>
+                <option value="ko-KR">🇰🇷 한국어</option>
+                <option value="fr-FR">🇫🇷 Français</option>
+                <option value="de-DE">🇩🇪 Deutsch</option>
+                <option value="es-ES">🇪🇸 Español</option>
+            </select>
+            <button id="micBtn" class="btn" data-i18n="startBtn">Start Recording</button>
+        </div>
     </div>
-    <div id="status" class="status">点击上方按钮开始说话...</div>
+    <div id="status" class="status" data-i18n="statusDefault">Click the button above to start speaking...</div>
 
-    <textarea id="textArea" placeholder="你的文字会出现在这里。你可以随时暂停，手动修改，然后把光标放在任意位置继续录音..."></textarea>
+    <textarea id="textArea"></textarea>
 
     <div id="interimText" class="interim-text"></div>
 
     <div class="action-bar">
-        <button id="copyBtn" class="action-btn copy-btn">复制全部</button>
-        <button id="clearBtn" class="action-btn clear-btn">清空内容</button>
+        <button id="copyBtn" class="action-btn copy-btn" data-i18n="copyBtn">Copy All</button>
+        <button id="clearBtn" class="action-btn clear-btn" data-i18n="clearBtn">Clear Content</button>
     </div>
 
     <div class="history-section">
         <div class="history-header">
-            <h3>最近转换</h3>
-            <button id="clearHistoryBtn" class="text-btn">全部清空</button>
+            <h3 data-i18n="recentTitle">Recent Conversions</h3>
+            <button id="clearHistoryBtn" class="text-btn" data-i18n="clearHistoryBtn">Clear All</button>
         </div>
         <ul id="historyList" class="history-list"></ul>
     </div>

@@ -1,35 +1,132 @@
+const locales = {
+    en: {
+        title: "Voice Notepad",
+        sponsor: "Sponsor",
+        startBtn: "Start Recording",
+        stopBtn: "Stop Recording",
+        preparing: "Preparing...",
+        statusDefault: "Click the button above to start speaking...",
+        statusListening: "Listening... (Inserts at cursor)",
+        statusMicRequest: "Requesting microphone access...",
+        statusRedirect: "<span style='color: #ef4444;'>Need authorization in a new tab. Redirecting...</span>",
+        statusNoSupport: "Sorry, your browser doesn't support speech recognition.",
+        statusMicDenied: "Microphone access denied. Please check browser settings.",
+        statusError: "Error occurred: ",
+        placeholder: "Your text will appear here. You can pause, edit manually, and place the cursor anywhere to continue recording...",
+        copyBtn: "Copy All",
+        copiedMsg: "✓ Copied & Cleared",
+        clearBtn: "Clear Content",
+        recentTitle: "Recent Conversions",
+        clearHistoryBtn: "Clear All",
+        emptyHistory: "No records",
+        copyFail: "Failed to copy, please select manually.",
+        clickToLoad: "Click to load: ",
+        deleteItem: "Delete this item"
+    },
+    zh: {
+        title: "语音记事本",
+        sponsor: "赞助",
+        startBtn: "开始录音",
+        stopBtn: "停止录音",
+        preparing: "准备中...",
+        statusDefault: "点击上方按钮开始说话...",
+        statusListening: "正在聆听中... (光标放在哪，字就打在哪)",
+        statusMicRequest: "正在请求麦克风权限...",
+        statusRedirect: "<span style='color: #ef4444;'>需在新标签页授权。正在为您跳转...</span>",
+        statusNoSupport: "抱歉，你的浏览器不支持语音识别功能。",
+        statusMicDenied: "麦克风权限被拒绝，请检查浏览器设置。",
+        statusError: "发生错误: ",
+        placeholder: "你的文字会出现在这里。你可以随时暂停，手动修改，然后把光标放在任意位置继续录音...",
+        copyBtn: "复制全部",
+        copiedMsg: "✓ 已复制并清空",
+        clearBtn: "清空内容",
+        recentTitle: "最近转换",
+        clearHistoryBtn: "全部清空",
+        emptyHistory: "暂无记录",
+        copyFail: "复制失败，请手动选取复制。",
+        clickToLoad: "点击加载: ",
+        deleteItem: "删除此条"
+    }
+};
+
+let currentUiLang = localStorage.getItem('appUiLang') || 'en';
+let currentSpeechLang = localStorage.getItem('appSpeechLang') || 'zh-CN'; // 记录上一次的语音语种
+
 let recognition;
 let isRecording = false;
 let mediaStream = null;
-let textArea = document.getElementById('textArea');
-let micBtn = document.getElementById('micBtn');
-let statusText = document.getElementById('status');
-let interimDiv = document.getElementById('interimText');
 
-let copyBtn = document.getElementById('copyBtn');
-let clearBtn = document.getElementById('clearBtn');
-let historyList = document.getElementById('historyList');
-let clearHistoryBtn = document.getElementById('clearHistoryBtn');
-let sponsorBtn = document.getElementById('sponsorBtn'); // 获取赞助按钮
+const uiLangSelect = document.getElementById('uiLangSelect');
+const speechLangSelect = document.getElementById('speechLangSelect');
+const textArea = document.getElementById('textArea');
+const micBtn = document.getElementById('micBtn');
+const statusText = document.getElementById('status');
+const interimDiv = document.getElementById('interimText');
+const copyBtn = document.getElementById('copyBtn');
+const clearBtn = document.getElementById('clearBtn');
+const historyList = document.getElementById('historyList');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+const sponsorBtn = document.getElementById('sponsorBtn');
 
-renderHistory();
+// --- 界面语言逻辑 ---
+function applyUiLanguage() {
+    const t = locales[currentUiLang];
 
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.innerHTML = t[key];
+    });
+
+    textArea.placeholder = t.placeholder;
+
+    if (isRecording) {
+        micBtn.innerText = t.stopBtn;
+        statusText.innerText = t.statusListening;
+    } else {
+        micBtn.innerText = t.startBtn;
+        if (!statusText.innerText.includes('Error') && !statusText.innerText.includes('错误') && !statusText.innerText.includes('拒绝') && !statusText.innerText.includes('denied')) {
+            statusText.innerText = t.statusDefault;
+        }
+    }
+    renderHistory();
+}
+
+uiLangSelect.value = currentUiLang;
+uiLangSelect.addEventListener('change', (e) => {
+    currentUiLang = e.target.value;
+    localStorage.setItem('appUiLang', currentUiLang);
+    applyUiLanguage();
+});
+
+// 初始化语音选择器
+speechLangSelect.value = currentSpeechLang;
+speechLangSelect.addEventListener('change', (e) => {
+    currentSpeechLang = e.target.value;
+    localStorage.setItem('appSpeechLang', currentSpeechLang);
+    // 如果正在录音时切换了语言，需要重启识别才能生效
+    if (isRecording) {
+        forceStopRecording();
+        startRecording();
+    }
+});
+
+applyUiLanguage();
+
+// --- 语音识别核心逻辑 ---
 if (!('webkitSpeechRecognition' in window)) {
-    statusText.innerText = "抱歉，你的浏览器不支持语音识别功能。";
+    statusText.innerText = locales[currentUiLang].statusNoSupport;
     micBtn.disabled = true;
 } else {
     recognition = new webkitSpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
 
-    // 系统自动检测语言，不再强制写死 zh-CN
-
     recognition.onstart = function() {
         isRecording = true;
-        micBtn.innerText = "停止录音";
+        micBtn.innerText = locales[currentUiLang].stopBtn;
         micBtn.disabled = false;
         micBtn.classList.add('recording');
-        statusText.innerText = "正在聆听中... (光标放在哪，字就打在哪)";
+        statusText.innerText = locales[currentUiLang].statusListening;
         textArea.focus();
     };
 
@@ -65,9 +162,9 @@ if (!('webkitSpeechRecognition' in window)) {
     recognition.onerror = function(event) {
         console.error("Speech error:", event.error);
         if (event.error === 'not-allowed') {
-            statusText.innerText = "麦克风权限被拒绝，请检查浏览器设置。";
+            statusText.innerText = locales[currentUiLang].statusMicDenied;
         } else {
-            statusText.innerText = "发生错误: " + event.error;
+            statusText.innerText = locales[currentUiLang].statusError + event.error;
         }
         forceStopRecording();
     };
@@ -87,8 +184,11 @@ if (!('webkitSpeechRecognition' in window)) {
 
 function startRecording() {
     micBtn.disabled = true;
-    micBtn.innerText = "准备中...";
-    statusText.innerText = "正在请求麦克风权限...";
+    micBtn.innerText = locales[currentUiLang].preparing;
+    statusText.innerText = locales[currentUiLang].statusMicRequest;
+
+    // 每次启动录音时，动态赋予选择器中的语言参数
+    recognition.lang = currentSpeechLang;
 
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(function(stream) {
@@ -96,13 +196,13 @@ function startRecording() {
             try {
                 recognition.start();
             } catch (e) {
-                console.error("启动识别失败:", e);
+                console.error("Start failed:", e);
                 forceStopRecording();
             }
         })
         .catch(function(err) {
-            console.error("麦克风权限异常:", err);
-            statusText.innerHTML = "<span style='color: #ef4444;'>需在新标签页授权。正在为您跳转...</span>";
+            console.error("Mic access error:", err);
+            statusText.innerHTML = locales[currentUiLang].statusRedirect;
             setTimeout(() => {
                 chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") });
                 forceStopRecording();
@@ -113,11 +213,12 @@ function startRecording() {
 function forceStopRecording() {
     isRecording = false;
     micBtn.disabled = false;
-    micBtn.innerText = "开始录音";
+    micBtn.innerText = locales[currentUiLang].startBtn;
     micBtn.classList.remove('recording');
 
-    if (statusText.innerText.includes("聆听中") || statusText.innerText.includes("准备中")) {
-        statusText.innerText = "点击上方按钮开始说话...";
+    const t = locales[currentUiLang];
+    if (statusText.innerText === t.statusListening || statusText.innerText === t.preparing) {
+        statusText.innerText = t.statusDefault;
     }
 
     interimDiv.innerText = "";
@@ -132,8 +233,6 @@ function forceStopRecording() {
     }
 }
 
-// ---------------- 操作按钮与历史记录逻辑 ----------------
-
 copyBtn.addEventListener('click', () => {
     const textToCopy = textArea.value.trim();
     if (!textToCopy) return;
@@ -144,7 +243,7 @@ copyBtn.addEventListener('click', () => {
         textArea.value = "";
 
         const originalText = copyBtn.innerText;
-        copyBtn.innerText = "✓ 已复制并清空";
+        copyBtn.innerText = locales[currentUiLang].copiedMsg;
         copyBtn.style.backgroundColor = "#dcfce7";
         copyBtn.style.color = "#166534";
         copyBtn.style.borderColor = "#bbf7d0";
@@ -154,8 +253,8 @@ copyBtn.addEventListener('click', () => {
             copyBtn.style = "";
         }, 1500);
     }).catch(err => {
-        console.error('复制失败:', err);
-        alert('复制失败，请手动选取复制。');
+        console.error('Copy failed:', err);
+        alert(locales[currentUiLang].copyFail);
     });
 });
 
@@ -164,7 +263,6 @@ clearBtn.addEventListener('click', () => {
     textArea.focus();
 });
 
-// ---------------- 赞助按钮逻辑 ----------------
 sponsorBtn.addEventListener('click', () => {
     chrome.tabs.create({ url: 'https://www.paypal.com/paypalme/robin326753' });
 });
@@ -181,6 +279,7 @@ function saveToHistory(text) {
 }
 
 function renderHistory() {
+    const t = locales[currentUiLang];
     let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
     historyList.innerHTML = '';
 
@@ -190,7 +289,7 @@ function renderHistory() {
         emptyLi.style.fontSize = '12px';
         emptyLi.style.textAlign = 'center';
         emptyLi.style.backgroundColor = 'transparent';
-        emptyLi.innerText = '暂无记录';
+        emptyLi.innerText = t.emptyHistory;
         historyList.appendChild(emptyLi);
         return;
     }
@@ -202,12 +301,12 @@ function renderHistory() {
         let textSpan = document.createElement('span');
         textSpan.className = 'history-item-text';
         textSpan.innerText = text;
-        textSpan.title = "点击加载: " + text;
+        textSpan.title = t.clickToLoad + text;
 
         let delBtn = document.createElement('button');
         delBtn.className = 'delete-single-btn';
         delBtn.innerHTML = '&times;';
-        delBtn.title = "删除此条";
+        delBtn.title = t.deleteItem;
 
         li.addEventListener('click', () => {
             textArea.value = text;
