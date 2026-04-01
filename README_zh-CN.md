@@ -32,7 +32,7 @@
 
 1. 在 Chrome 地址栏输入 `chrome://extensions/shortcuts` 进入快捷键设置页。
 2. 找到 **Speech Notepad** 插件区域。
-3. 在“全局唤起语音记事本 (跨软件)”一栏，录入你习惯的快捷键（例如 `Ctrl+Shift+S` 或 Mac 上的 `Cmd+Shift+S`）。
+3. 在“Open Speech Notepad in a global window (cross-application)”一栏，录入你习惯的快捷键（例如 `Ctrl+Shift+S` 或 Mac 上的 `Cmd+Shift+S`）。
 4. **最关键的一步：** 将右侧的下拉框从“在 Chrome 中”修改为 **“全局 (Global)”**。
 5. 把 Chrome 最小化，打开任意其他软件，按下快捷键，尽情体验吧！
 

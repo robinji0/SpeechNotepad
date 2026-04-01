@@ -32,7 +32,7 @@ Want to use this extension while coding in your IDE or writing a document?
 
 1. Go to `chrome://extensions/shortcuts` in your Chrome browser.
 2. Find **Speech Notepad**.
-3. Under "全局唤起语音记事本 (跨软件)" / "Global Window", set your preferred shortcut (e.g., `Ctrl+Shift+S` or `Cmd+Shift+S`).
+3. Under "Open Speech Notepad in a global window (cross-application)" / "Global Window", set your preferred shortcut (e.g., `Ctrl+Shift+S` or `Cmd+Shift+S`).
 4. **Crucial:** Change the dropdown menu next to it from "In Chrome" to **"Global"**.
 5. Minimize Chrome, open any other app, press your shortcut, and start dictating!
 
