@@ -2,6 +2,7 @@ const locales = {
     en: {
         title: "Voice Notepad",
         sponsor: "Sponsor",
+        dictationLang: "🎙️ Dictation Lang:", // 新增：录音语言下拉框前面的提示
         startBtn: "Start Recording",
         stopBtn: "Stop Recording",
         preparing: "Preparing...",
@@ -26,6 +27,7 @@ const locales = {
     zh: {
         title: "语音记事本",
         sponsor: "赞助",
+        dictationLang: "🎙️ 录音识别语言:", // 新增：录音语言下拉框前面的提示
         startBtn: "开始录音",
         stopBtn: "停止录音",
         preparing: "准备中...",
@@ -50,7 +52,7 @@ const locales = {
 };
 
 let currentUiLang = localStorage.getItem('appUiLang') || 'en';
-let currentSpeechLang = localStorage.getItem('appSpeechLang') || 'zh-CN'; // 记录上一次的语音语种
+let currentSpeechLang = localStorage.getItem('appSpeechLang') || 'zh-CN';
 
 let recognition;
 let isRecording = false;
@@ -98,12 +100,10 @@ uiLangSelect.addEventListener('change', (e) => {
     applyUiLanguage();
 });
 
-// 初始化语音选择器
 speechLangSelect.value = currentSpeechLang;
 speechLangSelect.addEventListener('change', (e) => {
     currentSpeechLang = e.target.value;
     localStorage.setItem('appSpeechLang', currentSpeechLang);
-    // 如果正在录音时切换了语言，需要重启识别才能生效
     if (isRecording) {
         forceStopRecording();
         startRecording();
@@ -187,7 +187,6 @@ function startRecording() {
     micBtn.innerText = locales[currentUiLang].preparing;
     statusText.innerText = locales[currentUiLang].statusMicRequest;
 
-    // 每次启动录音时，动态赋予选择器中的语言参数
     recognition.lang = currentSpeechLang;
 
     navigator.mediaDevices.getUserMedia({ audio: true })
