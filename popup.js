@@ -10,6 +10,7 @@ let copyBtn = document.getElementById('copyBtn');
 let clearBtn = document.getElementById('clearBtn');
 let historyList = document.getElementById('historyList');
 let clearHistoryBtn = document.getElementById('clearHistoryBtn');
+let sponsorBtn = document.getElementById('sponsorBtn'); // 获取赞助按钮
 
 renderHistory();
 
@@ -21,8 +22,7 @@ if (!('webkitSpeechRecognition' in window)) {
     recognition.continuous = true;
     recognition.interimResults = true;
 
-    // 取消了 recognition.lang = 'zh-CN' 的硬编码
-    // 现在系统会自动根据浏览器的默认语言环境进行自适应识别
+    // 系统自动检测语言，不再强制写死 zh-CN
 
     recognition.onstart = function() {
         isRecording = true;
@@ -132,6 +132,8 @@ function forceStopRecording() {
     }
 }
 
+// ---------------- 操作按钮与历史记录逻辑 ----------------
+
 copyBtn.addEventListener('click', () => {
     const textToCopy = textArea.value.trim();
     if (!textToCopy) return;
@@ -160,6 +162,11 @@ copyBtn.addEventListener('click', () => {
 clearBtn.addEventListener('click', () => {
     textArea.value = "";
     textArea.focus();
+});
+
+// ---------------- 赞助按钮逻辑 ----------------
+sponsorBtn.addEventListener('click', () => {
+    chrome.tabs.create({ url: 'https://www.paypal.com/paypalme/robin326753' });
 });
 
 function saveToHistory(text) {

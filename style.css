@@ -18,10 +18,37 @@ body {
     align-items: center;
 }
 
+.title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 h2 {
     margin: 0;
     font-size: 18px;
     color: #333;
+}
+
+/* 赞助按钮样式 */
+.sponsor-btn {
+    background-color: transparent;
+    border: 1px solid #fecdd3;
+    color: #e11d48;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sponsor-btn:hover {
+    background-color: #fff1f2;
+    border-color: #fda4af;
+    transform: translateY(-1px);
 }
 
 .btn {
