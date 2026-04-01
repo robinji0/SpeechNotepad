@@ -19,14 +19,14 @@
         "default": "Alt+S",
         "mac": "Alt+S"
       },
-      "description": "在 Chrome 中打开语音记事本"
+      "description": "Open Speech Notepad in Chrome"
     },
     "open_global_window": {
       "suggested_key": {
         "default": "Ctrl+Shift+S",
         "mac": "Command+Shift+S"
       },
-      "description": "全局唤起语音记事本 (跨软件)",
+      "description": "Open Speech Notepad in a global window (cross-application)",
       "global": true
     }
   }
