@@ -2,7 +2,7 @@ const locales = {
     en: {
         title: "Voice Notepad",
         sponsor: "Sponsor",
-        dictationLang: "🎙️ Dictation Lang:", // 新增：录音语言下拉框前面的提示
+        dictationLang: "🎙️ Dictation Lang:",
         startBtn: "Start Recording",
         stopBtn: "Stop Recording",
         preparing: "Preparing...",
@@ -22,12 +22,14 @@ const locales = {
         emptyHistory: "No records",
         copyFail: "Failed to copy, please select manually.",
         clickToLoad: "Click to load: ",
-        deleteItem: "Delete this item"
+        deleteItem: "Delete this item",
+        shortcutHint: "⌨️ Shortcuts: Chrome (Alt+S) | ",
+        shortcutLink: "Set Global Shortcut"
     },
     zh: {
         title: "语音记事本",
         sponsor: "赞助",
-        dictationLang: "🎙️ 录音识别语言:", // 新增：录音语言下拉框前面的提示
+        dictationLang: "🎙️ 录音识别语言:",
         startBtn: "开始录音",
         stopBtn: "停止录音",
         preparing: "准备中...",
@@ -47,7 +49,9 @@ const locales = {
         emptyHistory: "暂无记录",
         copyFail: "复制失败，请手动选取复制。",
         clickToLoad: "点击加载: ",
-        deleteItem: "删除此条"
+        deleteItem: "删除此条",
+        shortcutHint: "⌨️ 快捷键: 浏览器内 (Alt+S) | ",
+        shortcutLink: "配置全局跨软件唤起"
     }
 };
 
@@ -69,8 +73,8 @@ const clearBtn = document.getElementById('clearBtn');
 const historyList = document.getElementById('historyList');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 const sponsorBtn = document.getElementById('sponsorBtn');
+const shortcutLink = document.getElementById('shortcutLink'); // 获取快捷键跳转链接
 
-// --- 界面语言逻辑 ---
 function applyUiLanguage() {
     const t = locales[currentUiLang];
 
@@ -112,7 +116,12 @@ speechLangSelect.addEventListener('change', (e) => {
 
 applyUiLanguage();
 
-// --- 语音识别核心逻辑 ---
+// 绑定快捷键设置跳转事件
+shortcutLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+});
+
 if (!('webkitSpeechRecognition' in window)) {
     statusText.innerText = locales[currentUiLang].statusNoSupport;
     micBtn.disabled = true;

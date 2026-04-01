@@ -12,7 +12,6 @@ body {
     gap: 12px;
 }
 
-/* 头部样式优化：加底边框区分层级 */
 .header {
     display: flex;
     justify-content: space-between;
@@ -34,7 +33,6 @@ h2 {
     white-space: nowrap;
 }
 
-/* 界面语言选择器（极简风格） */
 .ui-lang-group {
     display: flex;
     align-items: center;
@@ -55,7 +53,6 @@ h2 {
     padding: 0;
 }
 
-/* 核心操作区样式 */
 .control-bar {
     display: flex;
     justify-content: space-between;
@@ -96,7 +93,6 @@ h2 {
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
-/* 赞助按钮 */
 .sponsor-btn {
     background-color: transparent;
     border: 1px solid #fecdd3;
@@ -119,7 +115,6 @@ h2 {
     transform: translateY(-1px);
 }
 
-/* 录音主按钮 */
 .btn {
     padding: 8px 16px;
     font-size: 14px;
@@ -153,7 +148,6 @@ h2 {
     background-color: #dc2626;
 }
 
-/* 其他元素 */
 .status {
     font-size: 12px;
     color: #6b7280;
@@ -303,6 +297,28 @@ textarea:focus {
 .delete-single-btn:hover {
     color: #ef4444;
     font-weight: bold;
+}
+
+/* 新增：快捷键引导区域样式 */
+.footer-info {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 12px;
+    color: #9ca3af;
+    border-top: 1px dashed #e5e7eb;
+    padding-top: 10px;
+}
+
+.footer-info a {
+    color: #3b82f6;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.footer-info a:hover {
+    color: #2563eb;
+    text-decoration: underline;
 }
 
 @keyframes pulse {

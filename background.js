@@ -18,7 +18,7 @@ chrome.commands.onCommand.addListener((command) => {
 function createStandaloneWindow() {
     chrome.windows.create({
         url: 'popup.html',
-        type: 'popup', // 以极简弹窗模式打开，没有地址栏和书签栏
+        type: 'popup',
         width: 520,
         height: 620,
         focused: true
