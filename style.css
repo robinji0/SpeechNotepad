@@ -61,7 +61,7 @@ h2 {
 
 textarea {
     width: 100%;
-    height: 200px;
+    height: 180px;
     padding: 10px;
     font-size: 14px;
     line-height: 1.5;
@@ -120,7 +120,6 @@ textarea:focus {
     background-color: #fee2e2;
 }
 
-/* 历史记录样式 */
 .history-section {
     margin-top: 10px;
     border-top: 1px solid #e5e7eb;
@@ -157,11 +156,15 @@ textarea:focus {
     list-style: none;
     padding: 0;
     margin: 0;
-    max-height: 120px;
+    max-height: 150px;
     overflow-y: auto;
 }
 
+/* 历史条目样式调整，改为 flex 布局以放置删除按钮 */
 .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 8px 10px;
     background-color: #f3f4f6;
     border-radius: 6px;
@@ -169,14 +172,34 @@ textarea:focus {
     font-size: 13px;
     color: #374151;
     cursor: pointer;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     transition: background-color 0.2s;
 }
 
 .history-item:hover {
     background-color: #e5e7eb;
+}
+
+.history-item-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 10px;
+}
+
+.delete-single-btn {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    cursor: pointer;
+}
+
+.delete-single-btn:hover {
+    color: #ef4444;
+    font-weight: bold;
 }
 
 @keyframes pulse {

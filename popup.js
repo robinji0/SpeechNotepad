@@ -134,18 +134,24 @@ function forceStopRecording() {
 
 // ---------------- 操作栏与历史记录逻辑 ----------------
 
-// 复制全部内容并保存到历史
+// 复制全部内容：包含停止录音 + 清空内容逻辑
 copyBtn.addEventListener('click', () => {
     const textToCopy = textArea.value.trim();
     if (!textToCopy) return;
 
     navigator.clipboard.writeText(textToCopy).then(() => {
-        // 保存到历史记录
+        // 1. 保存到历史记录
         saveToHistory(textToCopy);
+
+        // 2. 停止录音
+        forceStopRecording();
+
+        // 3. 清空输入框
+        textArea.value = "";
 
         // 视觉反馈
         const originalText = copyBtn.innerText;
-        copyBtn.innerText = "✓ 已复制";
+        copyBtn.innerText = "✓ 已复制并清空";
         copyBtn.style.backgroundColor = "#dcfce7";
         copyBtn.style.color = "#166534";
         copyBtn.style.borderColor = "#bbf7d0";
@@ -160,32 +166,23 @@ copyBtn.addEventListener('click', () => {
     });
 });
 
-// 直接清空内容（移除弹窗确认）
 clearBtn.addEventListener('click', () => {
     textArea.value = "";
     textArea.focus();
 });
 
-// 保存到本地存储
 function saveToHistory(text) {
     let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
-
-    // 移除已存在的相同文本，避免重复
     history = history.filter(item => item !== text);
-
-    // 添加到最前面
     history.unshift(text);
-
-    // 最多保留 10 条记录
-    if (history.length > 10) {
+    if (history.length > 20) { // 稍微放宽点历史上限
         history.pop();
     }
-
     localStorage.setItem('speechHistory', JSON.stringify(history));
     renderHistory();
 }
 
-// 渲染历史列表
+// 渲染历史列表，增加单条删除功能
 function renderHistory() {
     let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
     historyList.innerHTML = '';
@@ -196,30 +193,53 @@ function renderHistory() {
         emptyLi.style.fontSize = '12px';
         emptyLi.style.textAlign = 'center';
         emptyLi.style.backgroundColor = 'transparent';
-        emptyLi.innerText = '暂无记录，复制文本后自动保存';
+        emptyLi.innerText = '暂无记录';
         historyList.appendChild(emptyLi);
         return;
     }
 
-    history.forEach(text => {
+    history.forEach((text, index) => {
         let li = document.createElement('li');
         li.className = 'history-item';
-        li.innerText = text;
-        li.title = "点击加载: " + text; // 鼠标悬停显示完整内容
 
-        // 点击历史记录将其加载到输入框
+        // 文本部分
+        let textSpan = document.createElement('span');
+        textSpan.className = 'history-item-text';
+        textSpan.innerText = text;
+        textSpan.title = "点击加载: " + text;
+
+        // 删除按钮部分
+        let delBtn = document.createElement('button');
+        delBtn.className = 'delete-single-btn';
+        delBtn.innerHTML = '&times;';
+        delBtn.title = "删除此条";
+
+        // 点击文本加载
         li.addEventListener('click', () => {
             textArea.value = text;
             textArea.focus();
-            // 将光标移到最后
             textArea.selectionStart = textArea.selectionEnd = text.length;
         });
 
+        // 点击删除按钮单条移除
+        delBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // 防止触发父级的加载逻辑
+            deleteFromHistory(index);
+        });
+
+        li.appendChild(textSpan);
+        li.appendChild(delBtn);
         historyList.appendChild(li);
     });
 }
 
-// 清空历史记录
+function deleteFromHistory(index) {
+    let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
+    history.splice(index, 1);
+    localStorage.setItem('speechHistory', JSON.stringify(history));
+    renderHistory();
+}
+
 clearHistoryBtn.addEventListener('click', () => {
     localStorage.removeItem('speechHistory');
     renderHistory();
