@@ -7,5 +7,27 @@
     "default_popup": "popup.html",
     "default_title": "Open Speech Notepad"
   },
-  "permissions": []
+  "permissions": [
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+S",
+        "mac": "Alt+S"
+      },
+      "description": "在 Chrome 中打开语音记事本"
+    },
+    "open_global_window": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "全局唤起语音记事本 (跨软件)",
+      "global": true
+    }
+  }
 }
