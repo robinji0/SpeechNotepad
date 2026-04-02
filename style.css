@@ -34,23 +34,46 @@ h2 {
 }
 
 .ui-lang-group {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
-    background-color: #f3f4f6;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 12px;
+    padding: 4px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-.ui-lang-select {
-    background: transparent;
+.ui-lang-btn {
+    min-width: 58px;
+    height: 30px;
+    padding: 0 12px;
     border: none;
-    color: #4b5563;
-    font-weight: 500;
-    outline: none;
+    border-radius: 999px;
+    background: transparent;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
-    padding: 0;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.ui-lang-btn:hover {
+    color: #4b5563;
+    background-color: #e5e7eb;
+}
+
+.ui-lang-btn.active {
+    background: #ffffff;
+    color: #ffffff;
+    color: #374151;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.ui-lang-btn:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.18);
+    outline-offset: 2px;
 }
 
 .control-bar {

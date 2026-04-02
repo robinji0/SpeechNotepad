@@ -62,7 +62,7 @@ let recognition = null; // 不再设为全局唯一实例，初始为 null
 let isRecording = false;
 let mediaStream = null;
 
-const uiLangSelect = document.getElementById('uiLangSelect');
+const uiLangButtons = Array.from(document.querySelectorAll('.ui-lang-btn'));
 const speechLangSelect = document.getElementById('speechLangSelect');
 const textArea = document.getElementById('textArea');
 const micBtn = document.getElementById('micBtn');
@@ -84,6 +84,11 @@ function applyUiLanguage() {
     });
 
     textArea.placeholder = t.placeholder;
+    uiLangButtons.forEach(btn => {
+        const active = btn.dataset.lang === currentUiLang;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', String(active));
+    });
 
     if (isRecording) {
         micBtn.innerText = t.stopBtn;
@@ -97,11 +102,14 @@ function applyUiLanguage() {
     renderHistory();
 }
 
-uiLangSelect.value = currentUiLang;
-uiLangSelect.addEventListener('change', (e) => {
-    currentUiLang = e.target.value;
-    localStorage.setItem('appUiLang', currentUiLang);
-    applyUiLanguage();
+uiLangButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const nextLang = btn.dataset.lang;
+        if (!nextLang || nextLang === currentUiLang) return;
+        currentUiLang = nextLang;
+        localStorage.setItem('appUiLang', currentUiLang);
+        applyUiLanguage();
+    });
 });
 
 speechLangSelect.value = currentSpeechLang;
