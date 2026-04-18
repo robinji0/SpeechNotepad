@@ -19,12 +19,13 @@ const locales = {
         clearBtn: "Clear Content",
         recentTitle: "Recent Conversions",
         clearHistoryBtn: "Clear All",
+        loadingHistory: "Loading...",
         emptyHistory: "No records",
         copyFail: "Failed to copy, please select manually.",
         clickToLoad: "Click to load: ",
         deleteItem: "Delete this item",
-        shortcutHint: "⌨️ Shortcuts: Chrome (Alt+S) | ",
-        shortcutLink: "Set Global Shortcut"
+        shortcutHintFallback: "⌨️ Shortcut settings | ",
+        shortcutLink: "Open Shortcut Settings"
     },
     zh: {
         title: "语音记事本",
@@ -46,12 +47,13 @@ const locales = {
         clearBtn: "清空内容",
         recentTitle: "最近转换",
         clearHistoryBtn: "全部清空",
+        loadingHistory: "加载中...",
         emptyHistory: "暂无记录",
         copyFail: "复制失败，请手动选取复制。",
         clickToLoad: "点击加载: ",
         deleteItem: "删除此条",
-        shortcutHint: "⌨️ 快捷键: 浏览器内 (Alt+S) | ",
-        shortcutLink: "配置全局跨软件唤起"
+        shortcutHintFallback: "⌨️ 快捷键设置 | ",
+        shortcutLink: "打开快捷键设置"
     }
 };
 
@@ -74,6 +76,65 @@ const historyList = document.getElementById('historyList');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 const sponsorBtn = document.getElementById('sponsorBtn');
 const shortcutLink = document.getElementById('shortcutLink');
+const historyInitialBatchSize = 3;
+const historyLoadMoreBatchSize = 5;
+let hasSavedInterruptedOnHide = false;
+let visibleHistoryCount = 0;
+
+function renderHistoryPlaceholder() {
+    const t = locales[currentUiLang];
+    historyList.innerHTML = '';
+    historyList.appendChild(createHistoryEmptyItem(t.loadingHistory));
+}
+
+function normalizeHistory(history) {
+    if (!Array.isArray(history)) return [];
+
+    return history
+        .map((item) => {
+            if (typeof item === 'string') {
+                return { text: item, interrupted: false };
+            }
+
+            if (!item || typeof item.text !== 'string') {
+                return null;
+            }
+
+            return {
+                text: item.text,
+                interrupted: Boolean(item.interrupted)
+            };
+        })
+        .filter((item) => item && item.text.trim());
+}
+
+function getHistory() {
+    return normalizeHistory(JSON.parse(localStorage.getItem('speechHistory') || '[]'));
+}
+
+function getCurrentContent() {
+    return `${textArea.value}${interimDiv.innerText}`.trim();
+}
+
+function saveCurrentContentAsInterruptedHistory() {
+    if (hasSavedInterruptedOnHide) return;
+
+    const content = getCurrentContent();
+    if (!content) return;
+
+    saveToHistory(content, { interrupted: true });
+    hasSavedInterruptedOnHide = true;
+}
+
+function createHistoryEmptyItem(text) {
+    let emptyLi = document.createElement('li');
+    emptyLi.style.color = '#9ca3af';
+    emptyLi.style.fontSize = '12px';
+    emptyLi.style.textAlign = 'center';
+    emptyLi.style.backgroundColor = 'transparent';
+    emptyLi.innerText = text;
+    return emptyLi;
+}
 
 function applyUiLanguage() {
     const t = locales[currentUiLang];
@@ -99,7 +160,6 @@ function applyUiLanguage() {
             statusText.innerText = t.statusDefault;
         }
     }
-    renderHistory();
 }
 
 uiLangButtons.forEach(btn => {
@@ -109,6 +169,7 @@ uiLangButtons.forEach(btn => {
         currentUiLang = nextLang;
         localStorage.setItem('appUiLang', currentUiLang);
         applyUiLanguage();
+        renderHistory();
     });
 });
 
@@ -126,10 +187,31 @@ speechLangSelect.addEventListener('change', (e) => {
 });
 
 applyUiLanguage();
+renderHistoryPlaceholder();
+
+requestAnimationFrame(() => {
+    setTimeout(() => {
+        renderHistory();
+    }, 180);
+});
 
 shortcutLink.addEventListener('click', (e) => {
     e.preventDefault();
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+});
+
+textArea.addEventListener('input', () => {
+    hasSavedInterruptedOnHide = false;
+});
+
+historyList.addEventListener('scroll', loadMoreHistoryIfNeeded);
+
+window.addEventListener('pagehide', saveCurrentContentAsInterruptedHistory);
+window.addEventListener('beforeunload', saveCurrentContentAsInterruptedHistory);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        saveCurrentContentAsInterruptedHistory();
+    }
 });
 
 // 初始化检查
@@ -206,6 +288,7 @@ function startRecording() {
                 }
 
                 interimDiv.innerText = interimTranscript;
+                hasSavedInterruptedOnHide = false;
             };
 
             recognition.onerror = function(event) {
@@ -274,9 +357,11 @@ copyBtn.addEventListener('click', () => {
     if (!textToCopy) return;
 
     navigator.clipboard.writeText(textToCopy).then(() => {
-        saveToHistory(textToCopy);
+        saveToHistory(textToCopy, { interrupted: false });
         forceStopRecording();
         textArea.value = "";
+        interimDiv.innerText = "";
+        hasSavedInterruptedOnHide = true;
 
         const originalText = copyBtn.innerText;
         copyBtn.innerText = locales[currentUiLang].copiedMsg;
@@ -296,6 +381,8 @@ copyBtn.addEventListener('click', () => {
 
 clearBtn.addEventListener('click', () => {
     textArea.value = "";
+    interimDiv.innerText = "";
+    hasSavedInterruptedOnHide = true;
     textArea.focus();
 });
 
@@ -303,10 +390,14 @@ sponsorBtn.addEventListener('click', () => {
     chrome.tabs.create({ url: 'https://www.paypal.com/paypalme/robin326753' });
 });
 
-function saveToHistory(text) {
-    let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
-    history = history.filter(item => item !== text);
-    history.unshift(text);
+function saveToHistory(text, options = {}) {
+    const normalizedText = text.trim();
+    if (!normalizedText) return;
+
+    const interrupted = Boolean(options.interrupted);
+    let history = getHistory();
+    history = history.filter(item => item.text !== normalizedText);
+    history.unshift({ text: normalizedText, interrupted });
     if (history.length > 20) {
         history.pop();
     }
@@ -314,30 +405,22 @@ function saveToHistory(text) {
     renderHistory();
 }
 
-function renderHistory() {
+function appendHistoryItems(history, startIndex, count) {
     const t = locales[currentUiLang];
-    let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
-    historyList.innerHTML = '';
+    const endIndex = Math.min(startIndex + count, history.length);
 
-    if (history.length === 0) {
-        let emptyLi = document.createElement('li');
-        emptyLi.style.color = '#9ca3af';
-        emptyLi.style.fontSize = '12px';
-        emptyLi.style.textAlign = 'center';
-        emptyLi.style.backgroundColor = 'transparent';
-        emptyLi.innerText = t.emptyHistory;
-        historyList.appendChild(emptyLi);
-        return;
-    }
-
-    history.forEach((text, index) => {
+    for (let index = startIndex; index < endIndex; index += 1) {
+        const item = history[index];
         let li = document.createElement('li');
         li.className = 'history-item';
+        if (item.interrupted) {
+            li.classList.add('history-item-interrupted');
+        }
 
         let textSpan = document.createElement('span');
         textSpan.className = 'history-item-text';
-        textSpan.innerText = text;
-        textSpan.title = t.clickToLoad + text;
+        textSpan.innerText = item.text;
+        textSpan.title = t.clickToLoad + item.text;
 
         let delBtn = document.createElement('button');
         delBtn.className = 'delete-single-btn';
@@ -345,9 +428,11 @@ function renderHistory() {
         delBtn.title = t.deleteItem;
 
         li.addEventListener('click', () => {
-            textArea.value = text;
+            textArea.value = item.text;
+            interimDiv.innerText = "";
             textArea.focus();
-            textArea.selectionStart = textArea.selectionEnd = text.length;
+            textArea.selectionStart = textArea.selectionEnd = item.text.length;
+            hasSavedInterruptedOnHide = false;
         });
 
         delBtn.addEventListener('click', (e) => {
@@ -358,11 +443,37 @@ function renderHistory() {
         li.appendChild(textSpan);
         li.appendChild(delBtn);
         historyList.appendChild(li);
-    });
+    }
+
+    visibleHistoryCount = endIndex;
+}
+
+function loadMoreHistoryIfNeeded() {
+    const history = getHistory();
+    if (visibleHistoryCount >= history.length) return;
+
+    const nearBottom = historyList.scrollTop + historyList.clientHeight >= historyList.scrollHeight - 24;
+    if (!nearBottom) return;
+
+    appendHistoryItems(history, visibleHistoryCount, historyLoadMoreBatchSize);
+}
+
+function renderHistory() {
+    const t = locales[currentUiLang];
+    let history = getHistory();
+    historyList.innerHTML = '';
+    visibleHistoryCount = 0;
+
+    if (history.length === 0) {
+        historyList.appendChild(createHistoryEmptyItem(t.emptyHistory));
+        return;
+    }
+
+    appendHistoryItems(history, 0, historyInitialBatchSize);
 }
 
 function deleteFromHistory(index) {
-    let history = JSON.parse(localStorage.getItem('speechHistory') || '[]');
+    let history = getHistory();
     history.splice(index, 1);
     localStorage.setItem('speechHistory', JSON.stringify(history));
     renderHistory();
